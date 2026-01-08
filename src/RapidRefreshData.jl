@@ -11,12 +11,17 @@ function __init__()
 end
 
 #-----------------------------------------------------------------------------# Dataset
+# Products:
+# pgrb: Pressure Levels
+# sfcbf: Surface Fields
+# isobf: Isentropic f00
+
 @kwdef struct Dataset
     date::Date = today()
     cycle_time::String = "t00z"
     grid::String = "awp130"
     product::String = "pgrb"
-    forecast::String = "f00"
+    forecast::String = "f00"  # "f00" to "f18"
 end
 
 function url(dset::Dataset)
