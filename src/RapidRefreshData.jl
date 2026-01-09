@@ -2,7 +2,8 @@ module RapidRefreshData
 
 using Dates, Scratch
 
-const base_url = "https://noaa-rap-pds.s3.amazonaws.com/rap."
+const rap_base_url = "https://noaa-rap-pds.s3.amazonaws.com/rap."
+const gfs_base_url = "https://noaa-gfs-bdp-pds.s3.amazonaws.com/"
 
 
 #-----------------------------------------------------------------------------# __init__
@@ -12,13 +13,13 @@ function __init__()
     global dir = Scratch.@get_scratch!("datasets")
 end
 
-#-----------------------------------------------------------------------------# Dataset
+#-----------------------------------------------------------------------------# RAPDataset
 # Products:
 # pgrb: Pressure Levels
 # sfcbf: Surface Fields
-# isobf: Isentropic f00
+# isobf: Isentropic
 
-@kwdef struct Dataset
+@kwdef struct RAPDataset
     date::Date = today()
     cycle_time::String = "t00z"
     grid::String = "awp130"
@@ -26,39 +27,92 @@ end
     forecast::String = "f00"  # "f00" to "f18"
 end
 
-function Base.show(io::IO, dset::Dataset)
+function Base.show(io::IO, dset::RAPDataset)
     (;date, cycle_time, grid, product, forecast) = dset
-    print(io, "Dataset", (; date=string(date), cycle_time, grid, product, forecast))
+    print(io, "RAPDataset", (; date=string(date), cycle_time, grid, product, forecast))
 end
 
-function Base.parse(::Type{Dataset}, local_path::String)
+function Base.parse(::Type{RAPDataset}, local_path::String)
     filename = split(basename(local_path), ".")[1]
     parts = split(filename, "_")
-    date = Date(parts[1], "yyyymmdd")
-    cycle_time = parts[2]
-    grid = parts[3]
-    forecast = replace(parts[4], ".grib2" => "")
-    return Dataset(; date, cycle_time, grid, forecast)
+    # Skip "rap" prefix (parts[1]) and parse remaining parts
+    date = Date(parts[2], "yyyymmdd")
+    cycle_time = parts[3]
+    grid = parts[4]
+    forecast = parts[5]
+    return RAPDataset(; date, cycle_time, grid, forecast)
 end
 
-function url(dset::Dataset)
-    "$base_url$(Dates.format(dset.date, "yyyymmdd"))/rap.$(dset.cycle_time).$(dset.grid)pgrb$(dset.forecast).grib2"
+function url(dset::RAPDataset)
+    "$rap_base_url$(Dates.format(dset.date, "yyyymmdd"))/rap.$(dset.cycle_time).$(dset.grid)pgrb$(dset.forecast).grib2"
 end
 
-function local_path(dset::Dataset)
-    joinpath(dir, "$(Dates.format(dset.date, "yyyymmdd"))_$(dset.cycle_time)_$(dset.grid)_$(dset.forecast).grib2")
+function local_path(dset::RAPDataset)
+    joinpath(dir, "rap_$(Dates.format(dset.date, "yyyymmdd"))_$(dset.cycle_time)_$(dset.grid)_$(dset.forecast).grib2")
 end
 
-function Base.download(dset::Dataset)
+function Base.get(dset::RAPDataset)
     isfile(local_path(dset)) ? local_path(dset) : Base.download(url(dset), local_path(dset))
 end
 
-function local_datasets()
-    files = readdir(dir)
-    parse.(Dataset, files)
+function local_datasets(::Type{RAPDataset})
+    files = filter(f -> startswith(f, "rap_") && endswith(f, ".grib2"), readdir(dir))
+    parse.(RAPDataset, files)
 end
 
-function clear_local_dataset!(dset::Dataset)
+function clear_local_dataset!(dset::RAPDataset)
+    isfile(local_path(dset)) && rm(local_path(dset))
+end
+
+#-----------------------------------------------------------------------------# GFSDataset
+# GFS (Global Forecast System) from NOAA
+# Resolutions: 0p25 (0.25°), 0p50 (0.50°), 1p00 (1.00°)
+# Products: atmos, wave
+# Forecast: f000 to f384 (hourly to 120h, then 3-hourly to 384h)
+
+@kwdef struct GFSDataset
+    date::Date = today()
+    cycle::String = "00"  # "00", "06", "12", "18"
+    resolution::String = "0p25"  # "0p25", "0p50", "1p00"
+    product::String = "atmos"  # "atmos", "wave"
+    forecast::String = "f000"  # "f000" to "f384"
+end
+
+function Base.show(io::IO, dset::GFSDataset)
+    (;date, cycle, resolution, product, forecast) = dset
+    print(io, "GFSDataset", (; date=string(date), cycle, resolution, product, forecast))
+end
+
+function Base.parse(::Type{GFSDataset}, local_path::String)
+    filename = split(basename(local_path), ".")[1]
+    parts = split(filename, "_")
+    # Skip "gfs" prefix (parts[1]) and parse remaining parts
+    date = Date(parts[2], "yyyymmdd")
+    cycle = parts[3]
+    resolution = parts[4]
+    product = parts[5]
+    forecast = parts[6]
+    return GFSDataset(; date, cycle, resolution, product, forecast)
+end
+
+function url(dset::GFSDataset)
+    "$(gfs_base_url)gfs.$(Dates.format(dset.date, "yyyymmdd"))/$(dset.cycle)/$(dset.product)/gfs.t$(dset.cycle)z.pgrb2.$(dset.resolution).$(dset.forecast)"
+end
+
+function local_path(dset::GFSDataset)
+    joinpath(dir, "gfs_$(Dates.format(dset.date, "yyyymmdd"))_$(dset.cycle)_$(dset.resolution)_$(dset.product)_$(dset.forecast).grib2")
+end
+
+function Base.get(dset::GFSDataset)
+    isfile(local_path(dset)) ? local_path(dset) : Base.download(url(dset), local_path(dset))
+end
+
+function local_datasets(::Type{GFSDataset})
+    files = filter(f -> startswith(f, "gfs_"), readdir(dir))
+    parse.(GFSDataset, files)
+end
+
+function clear_local_dataset!(dset::GFSDataset)
     isfile(local_path(dset)) && rm(local_path(dset))
 end
 
