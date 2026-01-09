@@ -402,4 +402,104 @@ using Dates
         # Verify the non-existent file still doesn't exist
         @test !isfile(RapidRefreshData.local_path(test_dset_nonexistent))
     end
+
+    @testset "README Examples" begin
+        # Test Quick Start - RAP Data example
+        rap = RapidRefreshData.RAPDataset(
+            date = Date(2025, 1, 8),
+            cycle_time = "t12z",
+            forecast = "f06"
+        )
+        @test rap.date == Date(2025, 1, 8)
+        @test rap.cycle_time == "t12z"
+        @test rap.forecast == "f06"
+        # Verify get() returns a string path
+        @test isa(RapidRefreshData.local_path(rap), String)
+
+        # Test Quick Start - GFS Data example
+        gfs = RapidRefreshData.GFSDataset(
+            date = Date(2025, 1, 8),
+            cycle = "12",
+            resolution = "0p25",
+            forecast = "f006"
+        )
+        @test gfs.date == Date(2025, 1, 8)
+        @test gfs.cycle == "12"
+        @test gfs.resolution == "0p25"
+        @test gfs.forecast == "f006"
+
+        # Test date filtering pattern from cleanup example
+        old_dset = RapidRefreshData.RAPDataset(
+            date = today() - Day(10),
+            cycle_time = "t00z",
+            forecast = "f00"
+        )
+        recent_dset = RapidRefreshData.RAPDataset(
+            date = today() - Day(3),
+            cycle_time = "t00z",
+            forecast = "f00"
+        )
+
+        # Test the date comparison pattern
+        @test old_dset.date < today() - Day(7)
+        @test !(recent_dset.date < today() - Day(7))
+
+        # Test multiple forecast hours pattern (README loop example)
+        date = Date(2025, 1, 8)
+        cycle = "12"
+        forecast_hours = []
+
+        for fhour in 0:6:18
+            forecast_str = string("f", lpad(fhour, 3, '0'))
+            push!(forecast_hours, forecast_str)
+
+            gfs_test = RapidRefreshData.GFSDataset(
+                date = date,
+                cycle = cycle,
+                forecast = forecast_str
+            )
+            @test gfs_test.forecast == forecast_str
+        end
+
+        # Verify forecast string formatting works correctly
+        @test forecast_hours == ["f000", "f006", "f012", "f018"]
+
+        # Test cleanup pattern with actual files
+        test_old = RapidRefreshData.RAPDataset(
+            date = today() - Day(10),
+            cycle_time = "t00z",
+            forecast = "f00"
+        )
+        test_recent = RapidRefreshData.RAPDataset(
+            date = today() - Day(3),
+            cycle_time = "t00z",
+            forecast = "f00"
+        )
+
+        # Create temporary files
+        path_old = RapidRefreshData.local_path(test_old)
+        path_recent = RapidRefreshData.local_path(test_recent)
+        write(path_old, "old data")
+        write(path_recent, "recent data")
+
+        try
+            # Get all datasets
+            rap_datasets = RapidRefreshData.local_datasets(RapidRefreshData.RAPDataset)
+
+            # Filter and clear old datasets (README pattern)
+            for dset in rap_datasets
+                if dset.date < today() - Day(7)
+                    RapidRefreshData.clear_local_dataset!(dset)
+                end
+            end
+
+            # Old file should be deleted, recent should remain
+            @test !isfile(path_old)
+            @test isfile(path_recent)
+        finally
+            # Cleanup
+            rm(path_old, force=true)
+            rm(path_recent, force=true)
+        end
+    end
 end
