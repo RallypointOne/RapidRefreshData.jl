@@ -1,6 +1,6 @@
 name = "RapidRefreshData"
 uuid = "6311d174-80ed-4991-8be9-d0557cea290a"
-version = "1.0.0-DEV"
+version = "0.0.1"
 authors = ["Josh Day <emailjoshday@gmail.com> and contributors"]
 
 [deps]
