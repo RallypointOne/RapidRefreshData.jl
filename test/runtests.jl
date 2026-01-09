@@ -109,4 +109,96 @@ using Dates
         @test isa(path, String)
         @test endswith(path, ".grib2")
     end
+
+    @testset "local_datasets() function" begin
+        # Create some test dataset files
+        test_dset1 = RapidRefreshData.Dataset(
+            date = Date(2024, 1, 15),
+            cycle_time = "t00z",
+            grid = "awp130",
+            forecast = "f00"
+        )
+        test_dset2 = RapidRefreshData.Dataset(
+            date = Date(2024, 1, 16),
+            cycle_time = "t12z",
+            grid = "awp252",
+            forecast = "f06"
+        )
+
+        # Create temporary files to test with
+        path1 = RapidRefreshData.local_path(test_dset1)
+        path2 = RapidRefreshData.local_path(test_dset2)
+
+        # Write dummy content to the files
+        write(path1, "test data 1")
+        write(path2, "test data 2")
+
+        try
+            # Get all local datasets
+            datasets = RapidRefreshData.local_datasets()
+
+            # Should return an array of Datasets
+            @test isa(datasets, Vector{RapidRefreshData.Dataset})
+
+            # Should contain at least our test datasets
+            @test length(datasets) >= 2
+
+            # Check that our test datasets are in the list
+            dates = [d.date for d in datasets]
+            cycle_times = [d.cycle_time for d in datasets]
+            grids = [d.grid for d in datasets]
+            forecasts = [d.forecast for d in datasets]
+
+            @test Date(2024, 1, 15) in dates
+            @test Date(2024, 1, 16) in dates
+            @test "t00z" in cycle_times
+            @test "t12z" in cycle_times
+            @test "awp130" in grids
+            @test "awp252" in grids
+            @test "f00" in forecasts
+            @test "f06" in forecasts
+        finally
+            # Clean up test files
+            rm(path1, force=true)
+            rm(path2, force=true)
+        end
+    end
+
+    @testset "clear_local_dataset!() function" begin
+        # Create a test dataset file
+        test_dset = RapidRefreshData.Dataset(
+            date = Date(2024, 2, 20),
+            cycle_time = "t06z",
+            grid = "awp130",
+            forecast = "f03"
+        )
+
+        path = RapidRefreshData.local_path(test_dset)
+
+        # Write dummy content to create the file
+        write(path, "test data for deletion")
+
+        # Verify file exists
+        @test isfile(path)
+
+        # Clear the dataset
+        RapidRefreshData.clear_local_dataset!(test_dset)
+
+        # Verify file was removed
+        @test !isfile(path)
+
+        # Test clearing a dataset that doesn't exist (should not error)
+        test_dset_nonexistent = RapidRefreshData.Dataset(
+            date = Date(2024, 12, 31),
+            cycle_time = "t18z",
+            grid = "awp252",
+            forecast = "f12"
+        )
+
+        # This should not throw an error
+        @test_nowarn RapidRefreshData.clear_local_dataset!(test_dset_nonexistent)
+
+        # Verify the non-existent file still doesn't exist
+        @test !isfile(RapidRefreshData.local_path(test_dset_nonexistent))
+    end
 end
