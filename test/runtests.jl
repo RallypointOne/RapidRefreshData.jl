@@ -35,6 +35,41 @@ using Dates
         @test dset_partial.forecast == "f03"
     end
 
+    @testset "Base.read(::Type{RAPDataset}, path)" begin
+        # Test parsing a standard RAP filename
+        path1 = "rap_20240115_t00z_awp130_f00.grib2"
+        dset1 = read(RapidRefreshData.RAPDataset, path1)
+        @test dset1.date == Date(2024, 1, 15)
+        @test dset1.cycle_time == "t00z"
+        @test dset1.grid == "awp130"
+        @test dset1.forecast == "f00"
+
+        # Test parsing with different parameters
+        path2 = "rap_20241225_t12z_awp252_f06.grib2"
+        dset2 = read(RapidRefreshData.RAPDataset, path2)
+        @test dset2.date == Date(2024, 12, 25)
+        @test dset2.cycle_time == "t12z"
+        @test dset2.grid == "awp252"
+        @test dset2.forecast == "f06"
+
+        # Test parsing with full path
+        full_path = "/some/directory/rap_20240305_t18z_awp130_f03.grib2"
+        dset3 = read(RapidRefreshData.RAPDataset, full_path)
+        @test dset3.date == Date(2024, 3, 5)
+        @test dset3.cycle_time == "t18z"
+        @test dset3.grid == "awp130"
+        @test dset3.forecast == "f03"
+
+        # Test that read works with broadcast
+        paths = ["rap_20240101_t00z_awp130_f00.grib2", "rap_20240102_t06z_awp252_f12.grib2"]
+        dsets = read.(RapidRefreshData.RAPDataset, paths)
+        @test length(dsets) == 2
+        @test dsets[1].date == Date(2024, 1, 1)
+        @test dsets[2].date == Date(2024, 1, 2)
+        @test dsets[1].cycle_time == "t00z"
+        @test dsets[2].cycle_time == "t06z"
+    end
+
     @testset "url() function" begin
         # Test URL generation with default dataset
         test_date = Date(2024, 1, 15)
@@ -232,6 +267,46 @@ using Dates
         @test dset_partial.cycle == "18"
         @test dset_partial.resolution == "0p25"
         @test dset_partial.forecast == "f012"
+    end
+
+    @testset "Base.read(::Type{GFSDataset}, path)" begin
+        # Test parsing a standard GFS filename
+        path1 = "gfs_20240115_00_0p25_atmos_f000.grib2"
+        dset1 = read(RapidRefreshData.GFSDataset, path1)
+        @test dset1.date == Date(2024, 1, 15)
+        @test dset1.cycle == "00"
+        @test dset1.resolution == "0p25"
+        @test dset1.product == "atmos"
+        @test dset1.forecast == "f000"
+
+        # Test parsing with different parameters
+        path2 = "gfs_20241225_12_0p50_wave_f024.grib2"
+        dset2 = read(RapidRefreshData.GFSDataset, path2)
+        @test dset2.date == Date(2024, 12, 25)
+        @test dset2.cycle == "12"
+        @test dset2.resolution == "0p50"
+        @test dset2.product == "wave"
+        @test dset2.forecast == "f024"
+
+        # Test parsing with full path
+        full_path = "/some/directory/gfs_20240305_06_1p00_atmos_f012.grib2"
+        dset3 = read(RapidRefreshData.GFSDataset, full_path)
+        @test dset3.date == Date(2024, 3, 5)
+        @test dset3.cycle == "06"
+        @test dset3.resolution == "1p00"
+        @test dset3.product == "atmos"
+        @test dset3.forecast == "f012"
+
+        # Test that read works with broadcast
+        paths = ["gfs_20240101_00_0p25_atmos_f000.grib2", "gfs_20240102_18_0p50_wave_f384.grib2"]
+        dsets = read.(RapidRefreshData.GFSDataset, paths)
+        @test length(dsets) == 2
+        @test dsets[1].date == Date(2024, 1, 1)
+        @test dsets[2].date == Date(2024, 1, 2)
+        @test dsets[1].cycle == "00"
+        @test dsets[2].cycle == "18"
+        @test dsets[1].product == "atmos"
+        @test dsets[2].product == "wave"
     end
 
     @testset "GFSDataset url() function" begin

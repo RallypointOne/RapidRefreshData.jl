@@ -39,7 +39,7 @@ function Base.show(io::IO, dset::RAPDataset)
     print(io, "RAPDataset", (; date=string(date), cycle_time, grid, product, forecast))
 end
 
-function Base.parse(::Type{RAPDataset}, local_path::String)
+function Base.read(::Type{RAPDataset}, local_path::String)
     filename = split(basename(local_path), ".")[1]
     parts = split(filename, "_")
     # Skip "rap" prefix (parts[1]) and parse remaining parts
@@ -84,7 +84,7 @@ List all cached RAP datasets.
 """
 function local_datasets(::Type{RAPDataset})
     files = filter(f -> startswith(f, "rap_") && endswith(f, ".grib2"), readdir(dir))
-    parse.(RAPDataset, files)
+    read.(RAPDataset, files)
 end
 
 """
@@ -122,7 +122,7 @@ function Base.show(io::IO, dset::GFSDataset)
     print(io, "GFSDataset", (; date=string(date), cycle, resolution, product, forecast))
 end
 
-function Base.parse(::Type{GFSDataset}, local_path::String)
+function Base.read(::Type{GFSDataset}, local_path::String)
     filename = split(basename(local_path), ".")[1]
     parts = split(filename, "_")
     # Skip "gfs" prefix (parts[1]) and parse remaining parts
@@ -168,7 +168,7 @@ List all cached GFS datasets.
 """
 function local_datasets(::Type{GFSDataset})
     files = filter(f -> startswith(f, "gfs_"), readdir(dir))
-    parse.(GFSDataset, files)
+    read.(GFSDataset, files)
 end
 
 """
