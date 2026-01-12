@@ -1,5 +1,25 @@
 import RapidRefreshData as RRD
 
-using Rasters, ArchGDAL, Dates
+using Rasters, ArchGDAL, Dates, GRIBDatasets
 
-datasets = [RRD.RAPDataset(date = Date(2024, 6, 15), cycle_time = "t0$(i)z") for i in 0:5]
+#-----------------------------------------------------------------------------# get HRRR Dataset
+dset = RRD.HRRRDataset(
+    date = Date(2024, 1, 15),
+    cycle = "12",
+    region = "conus",
+    product = "wrfsfc",
+    forecast = "f06"
+)
+
+bands = RRD.bands(dset)
+
+wind_bands = filter(bands) do b
+    b.variable in ["UGRD", "VGRD"] && b.level == "10 m above ground"
+end
+
+path = get(dset, wind_bands)
+
+r = Raster(path, checkmem=false)
+
+u = r[:, :, 1]
+v = r[:, :, 2]
