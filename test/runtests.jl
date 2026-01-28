@@ -604,6 +604,81 @@ using Dates
         @test next7.cycle == "10"
     end
 
+    @testset "datasets() function" begin
+        # Test HRRRDataset - hourly cycles
+        hrrr_dsets = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,5))
+        @test length(hrrr_dsets) == 6  # hours 0,1,2,3,4,5
+        @test all(d -> d isa HRRRDataset, hrrr_dsets)
+        @test all(d -> d.date == Date(2024,1,15), hrrr_dsets)
+        @test [d.cycle for d in hrrr_dsets] == ["00", "01", "02", "03", "04", "05"]
+
+        # Test HRRRDataset - crossing midnight
+        hrrr_midnight = datasets(HRRRDataset, DateTime(2024,1,15,22), DateTime(2024,1,16,2))
+        @test length(hrrr_midnight) == 5  # 22,23,00,01,02
+        @test hrrr_midnight[1].date == Date(2024,1,15)
+        @test hrrr_midnight[1].cycle == "22"
+        @test hrrr_midnight[end].date == Date(2024,1,16)
+        @test hrrr_midnight[end].cycle == "02"
+
+        # Test RAPDataset - 6-hourly cycles
+        rap_dsets = datasets(RAPDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,23))
+        @test length(rap_dsets) == 4  # t00z, t06z, t12z, t18z
+        @test all(d -> d isa RAPDataset, rap_dsets)
+        @test all(d -> d.date == Date(2024,1,15), rap_dsets)
+        @test [d.cycle for d in rap_dsets] == ["t00z", "t06z", "t12z", "t18z"]
+
+        # Test RAPDataset - partial day
+        rap_partial = datasets(RAPDataset, DateTime(2024,1,15,7), DateTime(2024,1,15,17))
+        @test length(rap_partial) == 1  # only t12z
+        @test rap_partial[1].cycle == "t12z"
+
+        # Test RAPDataset - crossing midnight
+        rap_midnight = datasets(RAPDataset, DateTime(2024,1,15,12), DateTime(2024,1,16,12))
+        @test length(rap_midnight) == 5  # t12z, t18z, t00z, t06z, t12z
+        @test rap_midnight[1].date == Date(2024,1,15)
+        @test rap_midnight[1].cycle == "t12z"
+        @test rap_midnight[end].date == Date(2024,1,16)
+        @test rap_midnight[end].cycle == "t12z"
+
+        # Test GFSDataset - 6-hourly cycles
+        gfs_dsets = datasets(GFSDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,23))
+        @test length(gfs_dsets) == 4  # 00, 06, 12, 18
+        @test all(d -> d isa GFSDataset, gfs_dsets)
+        @test all(d -> d.date == Date(2024,1,15), gfs_dsets)
+        @test [d.cycle for d in gfs_dsets] == ["00", "06", "12", "18"]
+
+        # Test GFSDataset - multi-day
+        gfs_multiday = datasets(GFSDataset, DateTime(2024,1,15,0), DateTime(2024,1,16,23))
+        @test length(gfs_multiday) == 8  # 4 per day × 2 days
+        @test gfs_multiday[1].date == Date(2024,1,15)
+        @test gfs_multiday[end].date == Date(2024,1,16)
+
+        # Test empty range (no datasets match)
+        gfs_empty = datasets(GFSDataset, DateTime(2024,1,15,1), DateTime(2024,1,15,5))
+        @test length(gfs_empty) == 0
+
+        # Test exact boundary match
+        hrrr_exact = datasets(HRRRDataset, DateTime(2024,1,15,12), DateTime(2024,1,15,12))
+        @test length(hrrr_exact) == 1
+        @test hrrr_exact[1].cycle == "12"
+
+        # Test that default fields are preserved
+        hrrr_defaults = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,0))
+        @test hrrr_defaults[1].region == "conus"
+        @test hrrr_defaults[1].product == "wrfsfc"
+        @test hrrr_defaults[1].forecast == "f00"
+
+        rap_defaults = datasets(RAPDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,0))
+        @test rap_defaults[1].grid == "awp130"
+        @test rap_defaults[1].product == "pgrb"
+        @test rap_defaults[1].forecast == "f00"
+
+        gfs_defaults = datasets(GFSDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,0))
+        @test gfs_defaults[1].resolution == "0p25"
+        @test gfs_defaults[1].product == "atmos"
+        @test gfs_defaults[1].forecast == "f000"
+    end
+
     @testset "Band subsetting" begin
         # Test with HRRR dataset
         test_date = Date(2024, 1, 15)

@@ -4,7 +4,7 @@ using Dates, Scratch, Downloads
 
 export AbstractDataset, RAPDataset, GFSDataset, HRRRDataset
 export Band, bands, index_url
-export url, local_path, nextcycle, list, clear_cache!!, resolution_km, metadata
+export url, local_path, nextcycle, list, clear_cache!!, resolution_km, metadata, datasets
 
 #-----------------------------------------------------------------------------# __init__
 "scratch directory for caching downloaded datasets"
@@ -333,6 +333,77 @@ function metadata()
             ),
         ),
     )
+end
+
+#-----------------------------------------------------------------------------# datasets
+"""
+    datasets(::Type{T}, start::DateTime, stop::DateTime) where {T <: AbstractDataset}
+
+Return a Vector of all datasets of type `T` that cover the time period from `start` to `stop`.
+
+Each dataset represents one model cycle (initialization time). The function returns all cycles
+whose initialization time falls within the specified range.
+
+# Examples
+```julia
+using Dates
+
+# Get all HRRR datasets for a 6-hour window (hourly cycles)
+datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))
+
+# Get all RAP datasets for a day (6-hourly cycles)
+datasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))
+
+# Get all GFS datasets for a day (6-hourly cycles)
+datasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16))
+```
+"""
+function datasets end
+
+function datasets(::Type{RAPDataset}, start::DateTime, stop::DateTime)
+    result = RAPDataset[]
+    cycles = ["t00z", "t06z", "t12z", "t18z"]
+    cycle_hours = [0, 6, 12, 18]
+
+    for date in Date(start):Day(1):Date(stop)
+        for (cycle, hour) in zip(cycles, cycle_hours)
+            dt = DateTime(date) + Hour(hour)
+            if start <= dt <= stop
+                push!(result, RAPDataset(date=date, cycle=cycle))
+            end
+        end
+    end
+    return result
+end
+
+function datasets(::Type{GFSDataset}, start::DateTime, stop::DateTime)
+    result = GFSDataset[]
+    cycles = ["00", "06", "12", "18"]
+    cycle_hours = [0, 6, 12, 18]
+
+    for date in Date(start):Day(1):Date(stop)
+        for (cycle, hour) in zip(cycles, cycle_hours)
+            dt = DateTime(date) + Hour(hour)
+            if start <= dt <= stop
+                push!(result, GFSDataset(date=date, cycle=cycle))
+            end
+        end
+    end
+    return result
+end
+
+function datasets(::Type{HRRRDataset}, start::DateTime, stop::DateTime)
+    result = HRRRDataset[]
+
+    for date in Date(start):Day(1):Date(stop)
+        for hour in 0:23
+            dt = DateTime(date) + Hour(hour)
+            if start <= dt <= stop
+                push!(result, HRRRDataset(date=date, cycle=lpad(hour, 2, '0')))
+            end
+        end
+    end
+    return result
 end
 
 #-----------------------------------------------------------------------------# Band/Variable Subsetting

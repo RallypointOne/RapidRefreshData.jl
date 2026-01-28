@@ -85,3 +85,25 @@ Global weather model with 6-hour update cycles.
 | `resolution` | `"0p25"`, `"0p50"`, `"1p00"` | Grid resolution in degrees |
 | `product` | `"atmos"`, `"wave"` | Atmospheric or wave |
 | `forecast` | `"f000"` to `"f384"` | Forecast hour |
+
+## Generating Datasets for a Time Range
+
+Use `datasets()` to generate all dataset instances covering a time period:
+
+```julia
+using RapidRefreshData, Dates
+
+# Get all HRRR datasets for a 6-hour window (returns 7 datasets, one per hour)
+hrrr_list = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))
+
+# Get all RAP datasets for a day (returns 4 datasets, one per 6-hour cycle)
+rap_list = datasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))
+
+# Get all GFS datasets for two days (returns 8 datasets)
+gfs_list = datasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16,18))
+
+# Download all datasets in a time range
+for dset in datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,3))
+    get(dset)
+end
+```
