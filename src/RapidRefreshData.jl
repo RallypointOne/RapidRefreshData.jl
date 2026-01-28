@@ -4,7 +4,7 @@ using Dates, Scratch, Downloads
 
 export AbstractDataset, RAPDataset, GFSDataset, HRRRDataset
 export Band, bands, index_url
-export url, local_path, nextcycle, list, clear_cache!!
+export url, local_path, nextcycle, list, clear_cache!!, resolution_km, metadata
 
 #-----------------------------------------------------------------------------# __init__
 "scratch directory for caching downloaded datasets"
@@ -250,6 +250,88 @@ function nextcycle(dset::HRRRDataset)
         region = dset.region,
         product = dset.product,
         forecast = dset.forecast
+    )
+end
+
+#-----------------------------------------------------------------------------# resolution_km
+"""
+    resolution_km(dset::AbstractDataset) -> Float64
+
+Return the approximate grid resolution in kilometers for the dataset.
+
+# Examples
+```julia
+resolution_km(RAPDataset(grid="awp130"))  # 13.0
+resolution_km(RAPDataset(grid="awp252"))  # 32.0
+resolution_km(GFSDataset(resolution="0p25"))  # 28.0
+resolution_km(HRRRDataset())  # 3.0
+```
+"""
+function resolution_km end
+
+function resolution_km(dset::RAPDataset)
+    dset.grid == "awp130" && return 13.0
+    dset.grid == "awp252" && return 32.0
+    error("Unknown RAP grid: $(dset.grid)")
+end
+
+function resolution_km(dset::GFSDataset)
+    # GFS resolution is in degrees; 1° ≈ 111km at equator
+    dset.resolution == "0p25" && return 28.0
+    dset.resolution == "0p50" && return 56.0
+    dset.resolution == "1p00" && return 111.0
+    error("Unknown GFS resolution: $(dset.resolution)")
+end
+
+resolution_km(::HRRRDataset) = 3.0
+
+#-----------------------------------------------------------------------------# metadata
+"""
+    metadata() -> NamedTuple
+
+Return a table of dataset types with their field options and descriptions.
+
+# Example
+```julia
+meta = metadata()
+meta.RAPDataset  # Options for RAPDataset
+```
+"""
+function metadata()
+    (
+        RAPDataset = (
+            description = "Rapid Refresh - Continental US weather model",
+            resolution_km = (awp130 = 13.0, awp252 = 32.0),
+            fields = (
+                date = "Forecast date (Date)",
+                cycle = ["t00z", "t06z", "t12z", "t18z"],
+                grid = ["awp130", "awp252"],
+                product = ["pgrb", "sfcbf", "isobf"],
+                forecast = "f00 to f18",
+            ),
+        ),
+        GFSDataset = (
+            description = "Global Forecast System - Global weather model",
+            resolution_km = (var"0p25" = 28.0, var"0p50" = 56.0, var"1p00" = 111.0),
+            fields = (
+                date = "Forecast date (Date)",
+                cycle = ["00", "06", "12", "18"],
+                resolution = ["0p25", "0p50", "1p00"],
+                product = ["atmos", "wave"],
+                forecast = "f000 to f384",
+            ),
+        ),
+        HRRRDataset = (
+            description = "High-Resolution Rapid Refresh - 3km US weather model",
+            resolution_km = 3.0,
+            fields = (
+                date = "Forecast date (Date)",
+                cycle = "00 to 23",
+                region = ["conus", "alaska"],
+                product = ["wrfsfc", "wrfprs", "wrfnat", "wrfsub"],
+                forecast = "f00 to f48",
+            ),
+        ),
     )
 end
 
