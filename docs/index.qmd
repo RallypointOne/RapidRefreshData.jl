@@ -1,0 +1,35 @@
+---
+title: "RapidRefreshData.jl"
+engine: julia
+---
+
+Welcome to the documentation for **RapidRefreshData.jl**.
+
+## Overview
+
+Easy access to NOAA weather model data from AWS:
+
+- **HRRR (High-Resolution Rapid Refresh)** - 3km resolution, hourly updates
+- **RAP (Rapid Refresh)** - 13km resolution, 6-hour cycles
+- **GFS (Global Forecast System)** - Global forecasts, 0.25° resolution
+
+Data is automatically downloaded and cached locally in your scratchspace.
+
+## Installation
+
+```julia
+using Pkg
+Pkg.add("RapidRefreshData")
+```
+
+## Quickstart
+
+```{julia}
+using RapidRefreshData, Dates
+
+# Create a dataset descriptor
+dset = HRRRDataset(date=Date(2024, 1, 15), cycle="12", forecast="f06")
+
+# View the URL for this dataset
+url(dset)
+```

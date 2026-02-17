@@ -1,0 +1,45 @@
+# Getting Started {.unnumbered}
+
+## Basic Usage
+
+```julia
+using RapidRefreshData, Dates
+
+# Create a dataset descriptor
+dset = HRRRDataset(
+    date = Date(2024, 1, 15),
+    cycle = "12",
+    forecast = "f06"
+)
+
+# Download full file
+path = get(dset)
+```
+
+## Band Subsetting
+
+Download only specific variables using HTTP range requests:
+
+```julia
+# View available bands
+all_bands = bands(dset)
+
+# Filter for wind components
+wind_bands = filter(b -> b.variable in ["UGRD", "VGRD"], all_bands)
+
+# Download only selected bands
+path = get(dset, wind_bands)
+```
+
+## Generating Time Ranges
+
+```julia
+# Get all HRRR datasets for a 6-hour window
+hrrr_list = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))
+
+# Get all RAP datasets for a day
+rap_list = datasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))
+
+# Get all GFS datasets for two days
+gfs_list = datasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16,18))
+```

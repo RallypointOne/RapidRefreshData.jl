@@ -1,6 +1,9 @@
-# RapidRefreshData
+[![CI](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/CI.yml)
+[![Docs Build](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/Docs.yml/badge.svg)](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/Docs.yml)
+[![Stable Docs](https://img.shields.io/badge/docs-stable-blue)](https://RallypointOne.github.io/RapidRefreshData.jl/stable/)
+[![Dev Docs](https://img.shields.io/badge/docs-dev-blue)](https://RallypointOne.github.io/RapidRefreshData.jl/dev/)
 
-[![Build Status](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/RallypointOne/RapidRefreshData.jl/actions/workflows/CI.yml?query=branch%3Amain)
+# RapidRefreshData.jl
 
 Easy access to NOAA weather model data from AWS:
 - **HRRR (High-Resolution Rapid Refresh)** - 3km resolution, hourly updates
@@ -35,75 +38,4 @@ path = get(dset)
 all_bands = bands(dset)
 wind_bands = filter(b -> b.variable in ["UGRD", "VGRD"], all_bands)
 path = get(dset, wind_bands)
-```
-
-## Dataset Types
-
-### HRRRDataset (High-Resolution Rapid Refresh)
-
-3km resolution US weather model with hourly updates.
-
-| Field | Options | Description |
-|-------|---------|-------------|
-| `date` | `Date` | Forecast initialization date |
-| `cycle` | `"00"` to `"23"` | Model run hour (hourly) |
-| `region` | `"conus"`, `"alaska"` | Geographic region |
-| `product` | `"wrfsfc"`, `"wrfprs"`, `"wrfnat"`, `"wrfsub"` | Surface, pressure, native, or subhourly |
-| `forecast` | `"f00"` to `"f48"` | Forecast hour |
-
-### RAPDataset (Rapid Refresh)
-
-Continental US weather model with 6-hour update cycles.
-
-| Field | Options | Resolution |
-|-------|---------|------------|
-| `grid` | `"awp130"` | ~13 km |
-| `grid` | `"awp252"` | ~32 km |
-
-| Field | Options | Description |
-|-------|---------|-------------|
-| `date` | `Date` | Forecast initialization date |
-| `cycle` | `"t00z"`, `"t06z"`, `"t12z"`, `"t18z"` | Model run time (6-hourly) |
-| `grid` | `"awp130"`, `"awp252"` | Grid resolution |
-| `product` | `"pgrb"`, `"sfcbf"`, `"isobf"` | Pressure, surface, or isentropic |
-| `forecast` | `"f00"` to `"f18"` | Forecast hour |
-
-### GFSDataset (Global Forecast System)
-
-Global weather model with 6-hour update cycles.
-
-| Field | Options | Resolution |
-|-------|---------|------------|
-| `resolution` | `"0p25"` | ~28 km |
-| `resolution` | `"0p50"` | ~56 km |
-| `resolution` | `"1p00"` | ~111 km |
-
-| Field | Options | Description |
-|-------|---------|-------------|
-| `date` | `Date` | Forecast initialization date |
-| `cycle` | `"00"`, `"06"`, `"12"`, `"18"` | Model run time (6-hourly) |
-| `resolution` | `"0p25"`, `"0p50"`, `"1p00"` | Grid resolution in degrees |
-| `product` | `"atmos"`, `"wave"` | Atmospheric or wave |
-| `forecast` | `"f000"` to `"f384"` | Forecast hour |
-
-## Generating Datasets for a Time Range
-
-Use `datasets()` to generate all dataset instances covering a time period:
-
-```julia
-using RapidRefreshData, Dates
-
-# Get all HRRR datasets for a 6-hour window (returns 7 datasets, one per hour)
-hrrr_list = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))
-
-# Get all RAP datasets for a day (returns 4 datasets, one per 6-hour cycle)
-rap_list = datasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))
-
-# Get all GFS datasets for two days (returns 8 datasets)
-gfs_list = datasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16,18))
-
-# Download all datasets in a time range
-for dset in datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,3))
-    get(dset)
-end
 ```
