@@ -108,5 +108,27 @@
       "Reference",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>Changelog</span>"
     ]
+  },
+  {
+    "objectID": "changelog.html#v0.2.0",
+    "href": "changelog.html#v0.2.0",
+    "title": "Changelog",
+    "section": "v0.2.0",
+    "text": "v0.2.0\n\nAdd Quarto-based documentation site with versioned deployment\nAdd code coverage report in docs via LocalCoverage\nAdd auto-generated API reference page\nAdd CI testing on all platforms (Ubuntu, Windows, macOS)\nAdd Docs and DocsBackfill GitHub Actions workflows\nAdd TagBot workflow for automated tagging\nAdd CHANGELOG.md and CLAUDE.md\nUpdate dependabot config with dependency grouping",
+    "crumbs": [
+      "Reference",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Changelog</span>"
+    ]
+  },
+  {
+    "objectID": "changelog.html#v0.1.0",
+    "href": "changelog.html#v0.1.0",
+    "title": "Changelog",
+    "section": "v0.1.0",
+    "text": "v0.1.0\n\nAdd support for HRRR, RAP, and GFS NOAA weather model datasets from AWS\nAutomatic download and local caching via scratchspace\nBand/variable subsetting with HTTP range requests\nTime range dataset generation with datasets()\nresolution_km and metadata utility functions",
+    "crumbs": [
+      "Reference",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Changelog</span>"
+    ]
   }
 ]
