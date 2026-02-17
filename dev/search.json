@@ -1,0 +1,112 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "RapidRefreshData.jl",
+    "section": "",
+    "text": "Overview\nWelcome to the documentation for RapidRefreshData.jl.\nEasy access to NOAA weather model data from AWS:\nData is automatically downloaded and cached locally in your scratchspace.",
+    "crumbs": [
+      "Docs",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>RapidRefreshData.jl</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#overview",
+    "href": "index.html#overview",
+    "title": "RapidRefreshData.jl",
+    "section": "",
+    "text": "HRRR (High-Resolution Rapid Refresh) - 3km resolution, hourly updates\nRAP (Rapid Refresh) - 13km resolution, 6-hour cycles\nGFS (Global Forecast System) - Global forecasts, 0.25° resolution",
+    "crumbs": [
+      "Docs",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>RapidRefreshData.jl</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "RapidRefreshData.jl",
+    "section": "Installation",
+    "text": "Installation\nusing Pkg\nPkg.add(\"RapidRefreshData\")",
+    "crumbs": [
+      "Docs",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>RapidRefreshData.jl</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#quickstart",
+    "href": "index.html#quickstart",
+    "title": "RapidRefreshData.jl",
+    "section": "Quickstart",
+    "text": "Quickstart\n\nusing RapidRefreshData, Dates\n\n# Create a dataset descriptor\ndset = HRRRDataset(date=Date(2024, 1, 15), cycle=\"12\", forecast=\"f06\")\n\n# View the URL for this dataset\nurl(dset)\n\n\"https://noaa-hrrr-bdp-pds.s3.amazonaws.com/hrrr.20240115/conus/hrrr.t12z.wrfsfcf06.grib2\"",
+    "crumbs": [
+      "Docs",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>RapidRefreshData.jl</span>"
+    ]
+  },
+  {
+    "objectID": "getting-started.html",
+    "href": "getting-started.html",
+    "title": "Getting Started",
+    "section": "",
+    "text": "Basic Usage",
+    "crumbs": [
+      "Docs",
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting-started.html#basic-usage",
+    "href": "getting-started.html#basic-usage",
+    "title": "Getting Started",
+    "section": "",
+    "text": "using RapidRefreshData, Dates\n\n# Create a dataset descriptor\ndset = HRRRDataset(\n    date = Date(2024, 1, 15),\n    cycle = \"12\",\n    forecast = \"f06\"\n)\n\n# Download full file\npath = get(dset)",
+    "crumbs": [
+      "Docs",
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting-started.html#band-subsetting",
+    "href": "getting-started.html#band-subsetting",
+    "title": "Getting Started",
+    "section": "Band Subsetting",
+    "text": "Band Subsetting\nDownload only specific variables using HTTP range requests:\n# View available bands\nall_bands = bands(dset)\n\n# Filter for wind components\nwind_bands = filter(b -&gt; b.variable in [\"UGRD\", \"VGRD\"], all_bands)\n\n# Download only selected bands\npath = get(dset, wind_bands)",
+    "crumbs": [
+      "Docs",
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting-started.html#generating-time-ranges",
+    "href": "getting-started.html#generating-time-ranges",
+    "title": "Getting Started",
+    "section": "Generating Time Ranges",
+    "text": "Generating Time Ranges\n# Get all HRRR datasets for a 6-hour window\nhrrr_list = datasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))\n\n# Get all RAP datasets for a day\nrap_list = datasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))\n\n# Get all GFS datasets for two days\ngfs_list = datasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16,18))",
+    "crumbs": [
+      "Docs",
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "api.html",
+    "href": "api.html",
+    "title": "API",
+    "section": "",
+    "text": "Expand All\n\n\n\nAbstractDataset (type)\nBand (type)\nGFSDataset (type)\nHRRRDataset (type)\nRAPDataset (type)\nbands (function)\nclear_cache!! (function)\ndatasets (function)\nindex_url (function)\nlist (function)\nlocal_path (function)\nmetadata (function)\nnextcycle (function)\nresolution_km (function)\nurl (function)\n\n\n\n\n\n\n\nNoteAbstractDataset (type)\n\n\n\n\n\nNo documentation found for public binding RapidRefreshData.AbstractDataset.\n\nSummary\nabstract type RapidRefreshData.AbstractDataset\n\n\nSubtypes\nRapidRefreshData.GFSDataset\nRapidRefreshData.HRRRDataset\nRapidRefreshData.RAPDataset\n\n\n\n\n\n\n\n\n\n\nNoteBand (type)\n\n\n\n\n\nBand\nInformation about a GRIB2 band/variable from an index file.\n\nFields\n\nline_number::Int: Line number in GRIB2 file\nbyte_offset::Int: Starting byte position\ndate::String: Date string (format: d=YYYYMMDDHH)\nvariable::String: Variable name (e.g., “TMP”, “UGRD”, “VGRD”)\nlevel::String: Level description (e.g., “10 m above ground”, “surface”)\nforecast_type::String: Forecast type (e.g., “anl”, “0-1 hour”)\n\n\n\n\n\n\n\n\n\n\n\nNoteGFSDataset (type)\n\n\n\n\n\nGFSDataset(; date, cycle, resolution, product, forecast)\nNOAA Global Forecast System (GFS) dataset descriptor.\n\nFields\n\ndate::Date: Forecast initialization date (default: today)\ncycle::String: Model run time - “00”, “06”, “12”, or “18” (default: “00”)\nresolution::String: Grid resolution - “0p25” (0.25°), “0p50” (0.50°), or “1p00” (1.00°) (default: “0p25”)\nproduct::String: Product type - “atmos” or “wave” (default: “atmos”)\nforecast::String: Forecast hour - “f000” to “f384” (default: “f000”)\n\n\n\n\n\n\n\n\n\n\n\nNoteHRRRDataset (type)\n\n\n\n\n\nHRRRDataset(; date, cycle, region, product, forecast)\nNOAA High-Resolution Rapid Refresh (HRRR) dataset descriptor.\n\nFields\n\ndate::Date: Forecast initialization date (default: today)\ncycle::String: Model run hour - “00” to “23” (default: “00”)\nregion::String: Geographic region - “conus” (Continental US) or “alaska” (default: “conus”)\nproduct::String: Product type - “wrfsfc” (surface), “wrfprs” (pressure), “wrfnat” (native), or “wrfsub” (subhourly) (default: “wrfsfc”)\nforecast::String: Forecast hour - “f00” to “f48” (default: “f00”)\n\n\n\n\n\n\n\n\n\n\n\nNoteRAPDataset (type)\n\n\n\n\n\nRAPDataset(; date, cycle, grid, product, forecast)\nNOAA Rapid Refresh (RAP) dataset descriptor.\n\nFields\n\ndate::Date: Forecast initialization date (default: today)\ncycle::String: Model run time - “t00z”, “t06z”, “t12z”, or “t18z” (default: “t00z”)\ngrid::String: Grid resolution - “awp130” (~13km) or “awp252” (~32km) (default: “awp130”)\nproduct::String: Data type - “pgrb” (pressure), “sfcbf” (surface), or “isobf” (isentropic) (default: “pgrb”)\nforecast::String: Forecast hour - “f00” to “f18” (default: “f00”)\n\n\n\n\n\n\n\n\n\n\n\nNotebands (function)\n\n\n\n\n\nbands(dset::AbstractDataset) -&gt; Vector{Band}\nFetch and parse the index file to list all available bands/variables in the dataset.\n\nExample\ndset = HRRRDataset(date=Date(2024,1,15), cycle=\"12\")\nbands_list = bands(dset)\n# Find wind variables\nwind_bands = filter(b -&gt; contains(b.variable, \"GRD\") && contains(b.level, \"10 m\"), bands_list)\n\n\n\n\n\n\n\n\n\n\nNoteclear_cache!! (function) {#clear_cache!!}\n\n\n\n\n\nNo documentation found for public binding RapidRefreshData.clear_cache!!.\nRapidRefreshData.clear_cache!! is a Function.\n# 1 method for generic function \"clear_cache!!\" from RapidRefreshData:\n [1] clear_cache!!()\n     @ ~/work/RapidRefreshData.jl/RapidRefreshData.jl/src/RapidRefreshData.jl:74\n\n\n\n\n\n\n\n\n\nNotedatasets (function)\n\n\n\n\n\ndatasets(::Type{T}, start::DateTime, stop::DateTime) where {T &lt;: AbstractDataset}\nReturn a Vector of all datasets of type T that cover the time period from start to stop.\nEach dataset represents one model cycle (initialization time). The function returns all cycles whose initialization time falls within the specified range.\n\nExamples\nusing Dates\n\n# Get all HRRR datasets for a 6-hour window (hourly cycles)\ndatasets(HRRRDataset, DateTime(2024,1,15,0), DateTime(2024,1,15,6))\n\n# Get all RAP datasets for a day (6-hourly cycles)\ndatasets(RAPDataset, DateTime(2024,1,15), DateTime(2024,1,16))\n\n# Get all GFS datasets for a day (6-hourly cycles)\ndatasets(GFSDataset, DateTime(2024,1,15), DateTime(2024,1,16))\n\n\n\n\n\n\n\n\n\n\nNoteindex_url (function)\n\n\n\n\n\nindex_url(dset::AbstractDataset) -&gt; String\nGet the URL for the GRIB2 index file (.idx) corresponding to the dataset.\n\n\n\n\n\n\n\n\n\nNotelist (function)\n\n\n\n\n\nNo documentation found for public binding RapidRefreshData.list.\nRapidRefreshData.list is a Function.\n# 1 method for generic function \"list\" from RapidRefreshData:\n [1] list(::Type{T}) where T&lt;:RapidRefreshData.AbstractDataset\n     @ ~/work/RapidRefreshData.jl/RapidRefreshData.jl/src/RapidRefreshData.jl:72\n\n\n\n\n\n\n\n\n\nNotelocal_path (function)\n\n\n\n\n\nlocal_path(dset::AbstractDataset) -&gt; String\nGenerate local cache path for the dataset based on its parameters.\n\n\n\n\n\n\n\n\n\nNotemetadata (function)\n\n\n\n\n\nmetadata() -&gt; NamedTuple\nReturn a table of dataset types with their field options and descriptions.\n\nExample\nmeta = metadata()\nmeta.RAPDataset  # Options for RAPDataset\n\n\n\n\n\n\n\n\n\n\nNotenextcycle (function)\n\n\n\n\n\nnextcycle(dset::RAPDataset) -&gt; RAPDataset\nReturn a new RAPDataset with the cycle incremented to the next available cycle. Cycles progress: t00z -&gt; t06z -&gt; t12z -&gt; t18z -&gt; t00z (next day).\n\nExample\ndset = RAPDataset(date=Date(2024,1,15), cycle=\"t12z\")\nnext = nextcycle(dset)  # Date(2024,1,15), cycle=\"t18z\"\n\ndset = RAPDataset(date=Date(2024,1,15), cycle=\"t18z\")\nnext = nextcycle(dset)  # Date(2024,1,16), cycle=\"t00z\"\nnextcycle(dset::GFSDataset) -&gt; GFSDataset\nReturn a new GFSDataset with the cycle incremented to the next available cycle. Cycles progress: 00 -&gt; 06 -&gt; 12 -&gt; 18 -&gt; 00 (next day).\n\n\nExample\ndset = GFSDataset(date=Date(2024,1,15), cycle=\"12\")\nnext = nextcycle(dset)  # Date(2024,1,15), cycle=\"18\"\n\ndset = GFSDataset(date=Date(2024,1,15), cycle=\"18\")\nnext = nextcycle(dset)  # Date(2024,1,16), cycle=\"00\"\nnextcycle(dset::HRRRDataset) -&gt; HRRRDataset\nReturn a new HRRRDataset with the cycle incremented to the next hour. Cycles progress: 00 -&gt; 01 -&gt; 02 -&gt; … -&gt; 23 -&gt; 00 (next day).\n\n\nExample\ndset = HRRRDataset(date=Date(2024,1,15), cycle=\"12\")\nnext = nextcycle(dset)  # Date(2024,1,15), cycle=\"13\"\n\ndset = HRRRDataset(date=Date(2024,1,15), cycle=\"23\")\nnext = nextcycle(dset)  # Date(2024,1,16), cycle=\"00\"\n\n\n\n\n\n\n\n\n\n\nNoteresolution_km (function)\n\n\n\n\n\nresolution_km(dset::AbstractDataset) -&gt; Float64\nReturn the approximate grid resolution in kilometers for the dataset.\n\nExamples\nresolution_km(RAPDataset(grid=\"awp130\"))  # 13.0\nresolution_km(RAPDataset(grid=\"awp252\"))  # 32.0\nresolution_km(GFSDataset(resolution=\"0p25\"))  # 28.0\nresolution_km(HRRRDataset())  # 3.0\n\n\n\n\n\n\n\n\n\n\nNoteurl (function)\n\n\n\n\n\nurl(dset::RAPDataset) -&gt; String\nGenerate AWS S3 URL for the RAP dataset.\nurl(dset::GFSDataset) -&gt; String\nGenerate AWS S3 URL for the GFS dataset.\nurl(dset::HRRRDataset) -&gt; String\nGenerate AWS S3 URL for the HRRR dataset.",
+    "crumbs": [
+      "Docs",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>API</span>"
+    ]
+  },
+  {
+    "objectID": "changelog.html",
+    "href": "changelog.html",
+    "title": "Changelog",
+    "section": "",
+    "text": "Unreleased",
+    "crumbs": [
+      "Reference",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Changelog</span>"
+    ]
+  }
+]
