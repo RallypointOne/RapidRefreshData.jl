@@ -1,0 +1,1 @@
+genhtml -t 'on branch (detached from b7b4d24)' -o /home/runner/work/RapidRefreshData.jl/RapidRefreshData.jl/docs/_site/coverage coverage/lcov.info
