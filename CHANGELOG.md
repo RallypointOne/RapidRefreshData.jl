@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Sync docs layout (`docs/pages/`, `docs/assets/`) and CI/Docs workflows with JuliaPackageTemplate.jl
+
 ## v0.2.0
 
 - Add Quarto-based documentation site with versioned deployment
